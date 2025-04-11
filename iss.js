@@ -23,12 +23,12 @@ const fetchCoordsByIP = function(ip, callback) {
       return;
     }
     if (response.statusCode !== 200) {
-      return callback(Error(`Status Code ${response.statusCode} while fetching coordinates: ${body}`), null);
+      return callback(Error(`Status: ${response.statusCode} while fetching coordinates: ${body}`), null);
     }
     const bodyObj = typeof body === 'string' ? JSON.parse(body) : body;
 
     if (!bodyObj.success) {
-      const message = `Success status was ${bodyObj.success}. Server message says: ${bodyObj.message} when fetching for IP ${ip}`;
+      const message = `Success: ${bodyObj.success}. Server says: ${bodyObj.message} when fetching for IP ${ip}`;
       callback(Error(message), null);
       return;
     }
@@ -41,4 +41,27 @@ const fetchCoordsByIP = function(ip, callback) {
   });
 };
 
-module.exports = { fetchMyIP, fetchCoordsByIP };
+const fetchISSFlyOverTimes = function(coords, callback) {
+  const url = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
+
+  needle.get(url, (error, response, body) => {
+    if (error) {
+      callback(error, null);
+      return;
+    }
+    if (response.statusCode !== 200) {
+      callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null);
+      return;
+    }
+    const bodyObj = typeof body === 'string' ? JSON.parse(body) : body;
+
+    if (bodyObj.message !== "success") {
+      callback(Error(`Failed: ${bodyObj.message}`), null);
+      return;
+    }
+    callback(null, bodyObj.response);
+  });
+};
+
+
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
