@@ -10,8 +10,8 @@ const fetchMyIP = function(callback) {
       return;
     }
 
-    const IP = body.IP;
-    callback(null, IP);
+    const ip = body.ip;
+    callback(null, ip);
   });
 };
 
