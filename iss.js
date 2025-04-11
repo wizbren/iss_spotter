@@ -27,11 +27,11 @@ const fetchCoordsByIP = function(ip, callback) {
     }
     const bodyObj = typeof body === 'string' ? JSON.parse(body) : body;
 
-    if (!bodyObj.success) {
-      const message = `Success: ${bodyObj.success}. Server says: ${bodyObj.message} when fetching for IP ${ip}`;
-      callback(Error(message), null);
+    if (!bodyObj.latitude || !bodyObj.longitude) {
+      callback(Error(`Error: ${JSON.stringify(bodyObj)}`), null);
       return;
     }
+
     const coords = {
       latitude: bodyObj.latitude,
       longitude: bodyObj.longitude
@@ -50,15 +50,16 @@ const fetchISSFlyOverTimes = function(coords, callback) {
       return;
     }
     if (response.statusCode !== 200) {
-      callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null);
+      callback(Error(`Status: ${response.statusCode} when fetching ISS pass times: ${body}`), null);
       return;
     }
     const bodyObj = typeof body === 'string' ? JSON.parse(body) : body;
 
-    if (bodyObj.message !== "success") {
-      callback(Error(`Failed: ${bodyObj.message}`), null);
+    if (!bodyObj.response) {
+      callback(Error(`Error: ${JSON.stringify(bodyObj)}`), null);
       return;
     }
+
     callback(null, bodyObj.response);
   });
 };
