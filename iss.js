@@ -6,9 +6,9 @@ const fetchMyIP = function(callback) {
     if (error) return callback(error, null);
 
     if (response.statusCode !== 200) {
-      return callback(Error(`Status Code ${response.statusCode} when fetching IP: ${body}`), null);;
+      return callback(null, null);
     }
-    const bodyObj = JSON.parse(body);
+    const bodyObj = typeof body === 'string' ? JSON.parse(body) : body;
     const ip = bodyObj.ip;
     callback(null, ip);
   });
@@ -23,12 +23,12 @@ const fetchCoordsByIP = function(ip, callback) {
       return;
     }
     if (response.statusCode !== 200) {
-      return callback(Error(`Status: ${response.statusCode} while fetching coordinates: ${body}`), null);
+      return callback(null, null);
     }
     const bodyObj = typeof body === 'string' ? JSON.parse(body) : body;
 
     if (!bodyObj.latitude || !bodyObj.longitude) {
-      callback(Error(`Error: ${JSON.stringify(bodyObj)}`), null);
+      return callback(null, null);
       return;
     }
 
@@ -50,13 +50,13 @@ const fetchISSFlyOverTimes = function(coords, callback) {
       return;
     }
     if (response.statusCode !== 200) {
-      callback(Error(`Status: ${response.statusCode} when fetching ISS pass times: ${body}`), null);
+      return callback(null, null);
       return;
     }
     const bodyObj = typeof body === 'string' ? JSON.parse(body) : body;
 
     if (!bodyObj.response) {
-      callback(Error(`Error: ${JSON.stringify(bodyObj)}`), null);
+      return callback(null, null);
       return;
     }
 
@@ -65,4 +65,24 @@ const fetchISSFlyOverTimes = function(coords, callback) {
 };
 
 
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null);
+    }
+    fetchCoordsByIP(ip, (error, loc) => {
+      if (error) {
+        return callback(error, null);
+      }
+      fetchISSFlyOverTimes(loc, (error, nextPasses) => {
+        if (error) {
+          return callback(error, null);
+        }
+        callback(null, nextPasses);
+      });
+    });
+  });
+};
+
+
+module.exports = { nextISSTimesForMyLocation };
